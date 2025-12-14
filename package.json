@@ -1,0 +1,22 @@
+{
+  "name": "alphacraft-server",
+  "version": "1.0.0",
+  "description": "Multiplayer server for AlphaCraft",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
+```
+
+**4. Create `.gitignore`**:
+```
+node_modules/
+.env
