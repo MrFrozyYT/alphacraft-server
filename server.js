@@ -1,4 +1,4 @@
-// server.js - Enhanced with usernames and chat
+// server.js - With join/leave messages
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
@@ -36,6 +36,12 @@ io.on('connection', (socket) => {
   socket.emit('currentPlayers', players);
   socket.emit('worldBlocks', worldBlocks);
   socket.broadcast.emit('newPlayer', players[socket.id]);
+  
+  // Broadcast join message in yellow
+  io.emit('systemMessage', {
+    message: `${username} joined AlphaCraft`,
+    color: 'yellow'
+  });
   
   socket.on('playerMovement', (data) => {
     if (players[socket.id]) {
@@ -81,7 +87,15 @@ io.on('connection', (socket) => {
   });
   
   socket.on('disconnect', () => {
-    console.log('Player disconnected:', socket.id);
+    const username = players[socket.id]?.username || 'Unknown';
+    console.log('Player disconnected:', socket.id, username);
+    
+    // Broadcast leave message in red
+    io.emit('systemMessage', {
+      message: `${username} left AlphaCraft`,
+      color: '#ff5555'
+    });
+    
     delete players[socket.id];
     io.emit('playerDisconnected', socket.id);
   });
