@@ -14,9 +14,3 @@
     "node": ">=14.0.0"
   }
 }
-```
-
-**4. Create `.gitignore`**:
-```
-node_modules/
-.env
