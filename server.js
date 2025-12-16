@@ -1,4 +1,4 @@
-// server.js - With join/leave messages
+// server.js - Complete with animations and held block syncing
 const express = require('express');
 const app = express();
 const server = require('http').createServer(app);
@@ -23,13 +23,17 @@ io.on('connection', (socket) => {
   
   console.log('Player connected:', socket.id, username);
   
+  // Initialize player with animation state and held block
   players[socket.id] = {
     id: socket.id,
     username: username,
     x: 0,
     y: 10,
     z: 0,
-    yaw: 0
+    yaw: 0,
+    isWalking: false,
+    isJumping: false,
+    heldBlock: 1 // Default to BLOCK.GRASS
   };
   
   socket.emit('assignUsername', username);
@@ -43,23 +47,42 @@ io.on('connection', (socket) => {
     color: 'yellow'
   });
   
+  // Handle player movement with animation state
   socket.on('playerMovement', (data) => {
     if (players[socket.id]) {
       players[socket.id].x = data.x;
       players[socket.id].y = data.y;
       players[socket.id].z = data.z;
       players[socket.id].yaw = data.yaw;
+      players[socket.id].isWalking = data.isWalking || false;
+      players[socket.id].isJumping = data.isJumping || false;
       
       socket.broadcast.emit('playerMoved', {
         id: socket.id,
         x: data.x,
         y: data.y,
         z: data.z,
-        yaw: data.yaw
+        yaw: data.yaw,
+        isWalking: data.isWalking,
+        isJumping: data.isJumping
       });
     }
   });
   
+  // Handle held block changes
+  socket.on('heldBlockChanged', (heldBlock) => {
+    if (players[socket.id]) {
+      players[socket.id].heldBlock = heldBlock;
+      
+      // Notify all other players
+      socket.broadcast.emit('playerHeldBlockChanged', {
+        id: socket.id,
+        heldBlock: heldBlock
+      });
+    }
+  });
+  
+  // Handle chat messages
   socket.on('chatMessage', (message) => {
     const username = players[socket.id]?.username || 'Unknown';
     io.emit('chatMessage', {
@@ -69,6 +92,7 @@ io.on('connection', (socket) => {
     });
   });
   
+  // Handle block placement
   socket.on('blockPlaced', (data) => {
     const key = `${data.x}_${data.y}_${data.z}`;
     worldBlocks[key] = {
@@ -80,12 +104,14 @@ io.on('connection', (socket) => {
     io.emit('blockPlaced', data);
   });
   
+  // Handle block breaking
   socket.on('blockBroken', (data) => {
     const key = `${data.x}_${data.y}_${data.z}`;
     delete worldBlocks[key];
     io.emit('blockBroken', data);
   });
   
+  // Handle disconnection
   socket.on('disconnect', () => {
     const username = players[socket.id]?.username || 'Unknown';
     console.log('Player disconnected:', socket.id, username);
