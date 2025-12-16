@@ -33,6 +33,8 @@ io.on('connection', (socket) => {
     yaw: 0,
     isWalking: false,
     isJumping: false,
+    isBreaking: false,
+    isPlacing: false,
     heldBlock: 1 // Default to BLOCK.GRASS
   };
   
@@ -56,6 +58,8 @@ io.on('connection', (socket) => {
       players[socket.id].yaw = data.yaw;
       players[socket.id].isWalking = data.isWalking || false;
       players[socket.id].isJumping = data.isJumping || false;
+      players[socket.id].isBreaking = data.isBreaking || false;
+      players[socket.id].isPlacing = data.isPlacing || false;
       
       socket.broadcast.emit('playerMoved', {
         id: socket.id,
@@ -64,7 +68,9 @@ io.on('connection', (socket) => {
         z: data.z,
         yaw: data.yaw,
         isWalking: data.isWalking,
-        isJumping: data.isJumping
+        isJumping: data.isJumping,
+        isBreaking: data.isBreaking,
+        isPlacing: data.isPlacing
       });
     }
   });
